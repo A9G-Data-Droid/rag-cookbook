@@ -436,7 +436,7 @@ def create_vector_store(collection, documents: list):
 
 def print_metadata_summary(collection):
     """Print summary of metadata in the collection."""
-    print("\n📊 Metadata Summary:")
+    print("\n[SUMMARY] Metadata Summary:")
     
     # Count by decade
     pipeline = [
@@ -575,13 +575,45 @@ def main():
         # Show metadata summary
         print_metadata_summary(collection)
         
-        print("\n✅ Ingestion complete!")
+        print("\n[SUCCESS] Ingestion complete!")
         print(f"   Database: {DB_NAME}")
         print(f"   Collection: {COLLECTION_NAME}")
         print(f"   Documents stored: {len(documents)}")
         
-        # Print instructions for creating the vector search index
-        print_vector_search_index_instructions()
+        # Create Vector Index
+        print("\n" + "=" * 60)
+        print("Creating Vector Search Index")
+        print("=" * 60)
+        
+        # Add parent directory to path to import create_index
+        import sys
+        sys.path.append(str(Path(__file__).parent.parent))
+        from create_index import create_vector_index
+        
+        index_definition = {
+            "fields": [
+                {
+                    "type": "vector",
+                    "path": "embedding",
+                    "numDimensions": 1536,
+                    "similarity": "cosine"
+                },
+                {"type": "filter", "path": "year"},
+                {"type": "filter", "path": "decade"},
+                {"type": "filter", "path": "source_file"},
+                {"type": "filter", "path": "has_financials"},
+                {"type": "filter", "path": "topic_buckets"},
+                {"type": "filter", "path": "companies_mentioned"}
+            ]
+        }
+
+        create_vector_index(
+            mongodb_url=MONGO_DB_URL,
+            db_name=DB_NAME,
+            collection_name=COLLECTION_NAME,
+            index_name=INDEX_NAME,
+            index_definition=index_definition
+        )
         
     finally:
         client.close()

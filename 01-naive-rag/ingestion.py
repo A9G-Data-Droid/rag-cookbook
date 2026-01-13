@@ -181,8 +181,35 @@ def main():
         print(f"   Collection: {COLLECTION_NAME}")
         print(f"   Documents stored: {len(documents)}")
         
-        # Print instructions for creating the vector search index
-        print_vector_search_index_instructions()
+
+        # Create Vector Index
+        print("\n" + "=" * 50)
+        print("Creating Vector Search Index")
+        print("=" * 50)
+        
+        # Add parent directory to path to import create_index
+        import sys
+        sys.path.append(str(Path(__file__).parent.parent))
+        from create_index import create_vector_index
+        
+        index_definition = {
+            "fields": [
+                {
+                    "type": "vector",
+                    "path": "embedding",
+                    "numDimensions": 1536,
+                    "similarity": "cosine"
+                }
+            ]
+        }
+        
+        create_vector_index(
+            mongodb_url=MONGO_DB_URL,
+            db_name=DB_NAME,
+            collection_name=COLLECTION_NAME,
+            index_name=INDEX_NAME,
+            index_definition=index_definition
+        )
         
     finally:
         client.close()
